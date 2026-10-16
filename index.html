@@ -265,8 +265,8 @@
         const card = document.createElement('div');
         card.className = 'card';
         
-        // Extract JSESSIONID if present
-        const jsSession = user.sessionId || user.ck.match(/JSESSIONID=([^;]+)/)?.[1] || 'Not Found';
+        const jsSession = user.sessionId || user.ck?.match(/JSESSIONID=([^;]+)/)?.[1] || 'Not Found';
+        const fullJsonString = JSON.stringify(user, null, 2).replace(/`/g, '\\`');
         
         card.innerHTML = `
             <div class="card-header">
@@ -298,4 +298,38 @@
                 </div>` : ''}
             </div>
             <div class="card-footer">
-                <button class="btn-action btn-secondary" onclick="openModal('Full JSON', \`${JSON.stringify(user, null, 2).replace(/`/g
+                <button class="btn-action btn-secondary" onclick="openModal('Full JSON', \`${fullJsonString}\`)">View JSON</button>
+            </div>
+        `;
+        return card;
+    }
+
+    // Example function to fetch and update dashboard state if an endpoint exists
+    async function fetchDashboardData() {
+        try {
+            const response = await fetch(API_URL);
+            if (!response.ok) return;
+            const data = await response.json();
+            
+            const grid = document.getElementById('userGrid');
+            const emptyState = document.getElementById('emptyState');
+            
+            if (Array.isArray(data) && data.length > 0) {
+                if (emptyState) emptyState.remove();
+                grid.innerHTML = '';
+                data.forEach(user => grid.appendChild(renderCard(user)));
+                
+                document.getElementById('statUsers').textContent = data.length;
+                const now = new Date();
+                document.getElementById('statLast').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
+        } catch (e) {
+            // Endpoint might not be active or reachable yet
+        }
+    }
+
+    // Optional polling interval
+    // setInterval(fetchDashboardData, 5000);
+</script>
+</body>
+</html>
